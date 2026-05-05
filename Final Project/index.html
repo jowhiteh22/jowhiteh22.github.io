@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Olympic Diving Cumulative Score Progression</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+  </head>
+  <body>
+    <main class="page">
+      <div class="sticky-header">
+        <h1>Olympic Diving Score Trends over 2016, 2020, and 2024</h1>
+
+        <section aria-label="Visualization Description" class="intro-section">
+          <p>
+            This visualization tracks the cumulative scores of Olympic divers across multiple rounds in each competition. 
+            Each line represents a diver's score progression from the first round to the final round. Higher scores indicate better performance. 
+          </p>
+        </section>
+
+        <section class="controls" aria-label="Chart filters">
+          <div class="filter-section">
+            <h2 class="filter-heading">Filter:</h2>
+            <p class="filter-description">Use the filters below to explore different events and years.</p>
+            <div class="filter-inputs">
+              <div class="filter-group">
+                <label for="yearFilter">Olympic Year</label>
+                <select id="yearFilter" aria-label="Select Olympic year to display">
+                  <option value="2016">2016</option>
+                  <option value="2020">2020</option>
+                  <option value="2024" selected>2024</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label for="eventFilter">Olympic Event</label>
+                <select id="eventFilter" aria-label="Select diving event to display">
+                  <option value="women_3m">Women's 3m</option>
+                  <option value="men_3m">Men's 3m</option>
+                  <option value="women_10m">Women's 10m</option>
+                  <option value="men_10m">Men's 10m</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="helpPanel" class="help-panel" aria-label="How to read this visualization" hidden>
+          <h2>Learn More about Diving</h2>
+          <p>
+            At the Olympics, all dives are scored by a panel of judges. The judges rate the execution of every dive on a scale of 1-10, including half-point margins.
+
+            Individual diving events are scored by a panel of seven judges. Once all seven judges submit their scores for a dive, the highest two scores and lowest two scores are eliminated. The remaining three scores are added together to achieve the execution score, which is multiplied by the dive's degree of difficulty to determine the total score of the dive.
+
+            To learn more about diving refer to the following resources:
+            <ul>
+              <li><a href="https://www.nbcolympics.com/news/diving-101-olympic-scoring-rules-and-regulations" target="_blank" rel="How Dive Scoring Works">How is diving scored?</a></li>
+              <li><a href="https://www.nbcolympics.com/news/diving-101-types-dives" target="_blank" rel="How Dive Scoring Works">What are the different types of Dives?</a></li>
+      
+          </p>
+        </section>
+      </div>
+
+      <section class="viz-layout">
+        <article class="chart-card">
+          <div id="chart" role="region" aria-label="Main performance chart"></div>
+          <section class="chart-guide">
+            <p class="chart-guide-text">Accessibility: Use Tab and Up & Down Arrow keys to navigate the page. Press Enter or Space to select an item.</p>
+          </section>
+          <section class="mini-chart-wrap" role="region" aria-label="Dive analysis">
+            <h2>Dive Code Average Analysis</h2>
+            <p class="table-help">Below is a bar chart comparing an individual diver’s score on a specific dive to the average score for that same dive across all competitors in the event.</p>
+            <div id="diveCompare"></div>
+          </section>
+        </article>
+        <article class="table-card">
+          <h2>Final Rankings</h2>
+          <p class="table-help">Below is a table showing the final rankings of divers in the event, ordered from highest to lowest total score.</p>
+          <div id="rankTable"></div>
+          
+          <section class="action-buttons-section">
+            <p class="action-buttons-description">To learn more about diving, click Show Diving Insights. To view our dataset, click View Underlying Data.</p>
+            <div class="action-buttons">
+              <button id="helpToggle" class="help-toggle" type="button" aria-expanded="false" aria-controls="helpPanel">
+                Show Diving Insights
+              </button>
+              <a href="#" id="viewDataLink" onclick="openDataModal(event)" class="data-link">Final Write-Up</a>
+              <a href="../Final Project/Final Project Write-Up.pdf" target="_blank" class="data-link">Final Write-Up</a>
+            </div>
+          </section>
+        </article>
+      </section>
+    </main>
+
+    <div id="tooltip" class="tooltip hidden" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Data Table Modal -->
+    <div id="dataModal" class="data-table-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-content">
+        <button class="modal-close" onclick="closeDataModal()" aria-label="Close data table">×</button>
+        <h2 id="modalTitle">Underlying Data</h2>
+        <p>Below is a table of the data used in this visualization. Data is organized by athlete, including their scores for each dive round. This table updates dynamically based on the selected filters.</p>
+        <div id="modalDataTable"></div>
+      </div>
+    </div>
+
+    <script src="js/main.js"></script>
+  </body>
+</html>
