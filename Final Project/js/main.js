@@ -21,6 +21,7 @@ const helpPanel = document.getElementById("helpPanel");
 const tooltip = d3.select("#tooltip");
 const rankTable = d3.select("#rankTable");
 const diveCompare = d3.select("#diveCompare");
+const finalRankingsTitle = document.getElementById("finalRankingsTitle");
 
 //Screen Reader support
 const srSummary = d3.select("body")
@@ -35,7 +36,8 @@ const state = {
   divesLookup: {},
   selectedDiver: null,
   selectedDot: null,
-  selectedDivers: new Set() // Track two divers for comparison
+  selectedDivers: new Set(), // Track two divers for comparison
+  selectionSource: null // "plot" or "table" to control line visibility behavior
 };
 
 // Data Helper Functions
@@ -155,6 +157,15 @@ function getRankings(baseData) {
   }).sort((a, b) => a.rank - b.rank);
 }
 
+function getFinalRankingsTitle() {
+  // Builds heading text from selected filters (e.g., Final Ranking: Women 3M, 2024)
+  const selectedYear = yearFilter.value;
+  const [genderRaw, eventRaw] = eventFilter.value.split("_");
+  const gender = genderRaw.charAt(0).toUpperCase() + genderRaw.slice(1).toLowerCase();
+  const event = (eventRaw || "").toUpperCase();
+  return `Final Ranking: ${gender} ${event}, ${selectedYear}`;
+}
+
 function renderTable(rankings) {
   // Builds the ranking table, allows clicking rows to select up to two divers for comparison
   rankTable.selectAll("*").remove();
@@ -163,7 +174,7 @@ function renderTable(rankings) {
   rankTable.append("p")
     .attr("class", "table-instructions")
     .attr("id", "table-instr")
-    .text("Click one row to view that diver. Click a second row to compare two divers. Click again to deselect.");
+    .html("<strong>Click</strong> one row to view diver in Performance Progression Plot. <strong>Click</strong> a second row to compare two divers. <strong>Click again</strong> to deselect.");
 
   const table = rankTable.append("table");
   const thead = table.append("thead").append("tr");
@@ -187,6 +198,7 @@ function renderTable(rankings) {
       return `${d.rank}. ${d.name} from ${d.country} with score ${d.finalScore.toFixed(2)}. ${isSelected ? "Selected" : "Press Enter to select"}.`;
     })
     .on("click", (_, d) => {
+      state.selectionSource = "table";
       if (state.selectedDivers.has(d.name)) {
         state.selectedDivers.delete(d.name);
       } else {
@@ -195,11 +207,15 @@ function renderTable(rankings) {
         }
         state.selectedDivers.add(d.name);
       }
+      if (state.selectedDivers.size === 0) {
+        state.selectionSource = null;
+      }
       renderAll();
     })
     .on("keydown", (event, d) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
+        state.selectionSource = "table";
         if (state.selectedDivers.has(d.name)) {
           state.selectedDivers.delete(d.name);
         } else {
@@ -207,6 +223,9 @@ function renderTable(rankings) {
             state.selectedDivers.clear();
           }
           state.selectedDivers.add(d.name);
+        }
+        if (state.selectedDivers.size === 0) {
+          state.selectionSource = null;
         }
         renderAll();
       }
@@ -362,7 +381,7 @@ function renderChart(baseData, chartData) {
   const chartInstructions = chartEl.append("p")
     .attr("class", "chart-instructions")
     .attr("id", "chart-instr")
-    .text("Click on a line to select a specific diver. Click again to deselect. Hover over data points to see performance details. Click on a data point to compare scores (then, scroll passed the line chart).");
+    .html("<strong>INSTRUCTION:</strong> <strong>Click</strong> on a line to select a diver. <mark><strong>Scroll down</strong></mark> to see diver vs average. <strong>Click again</strong> to deselect. <strong>Hover</strong> over points to see details.");
 
   const width = Math.max(860, chartEl.node().clientWidth || 860);
   const height = 620;
@@ -454,10 +473,16 @@ function renderChart(baseData, chartData) {
       .attr("stroke-width", 2.5)
       .attr("d", line)
       .attr("class", "line-path")
+      .classed("active", state.selectedDivers.has(diver) || state.selectedDot?.name === diver)
+      .classed(
+        "faded",
+        state.selectionSource === "plot" && state.selectedDivers.size > 0 && !state.selectedDivers.has(diver)
+      )
       .attr("aria-label", `Line for ${diver}. Click to select this diver for comparison.`)
       .attr("role", "button")
       .attr("tabindex", 0)
       .on("click", () => {
+        state.selectionSource = "plot";
         if (state.selectedDivers.has(diver)) {
           state.selectedDivers.delete(diver);
         } else {
@@ -466,11 +491,15 @@ function renderChart(baseData, chartData) {
           }
           state.selectedDivers.add(diver);
         }
+        if (state.selectedDivers.size === 0) {
+          state.selectionSource = null;
+        }
         renderAll();
       })
       .on("keydown", (event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
+          state.selectionSource = "plot";
           if (state.selectedDivers.has(diver)) {
             state.selectedDivers.delete(diver);
           } else {
@@ -478,6 +507,9 @@ function renderChart(baseData, chartData) {
               state.selectedDivers.clear();
             }
             state.selectedDivers.add(diver);
+          }
+          if (state.selectedDivers.size === 0) {
+            state.selectionSource = null;
           }
           renderAll();
         }
@@ -492,17 +524,17 @@ function renderChart(baseData, chartData) {
           });
       })
       .on("mouseleave", () => {
-        // Remove fade effect
+        // Restore fade state based on current selection
         svg.selectAll(".line-path")
-          .classed("faded", false);
+          .classed("faded", (d) => {
+            const pathDiver = d[0]?.name;
+            return (
+              state.selectionSource === "plot" &&
+              state.selectedDivers.size > 0 &&
+              !state.selectedDivers.has(pathDiver)
+            );
+          });
       });
-
-    // Apply active class if this diver is selected
-    if (state.selectedDivers.has(diver)) {
-      svg.selectAll(".line-path")
-        .filter((d) => d[0]?.name === diver)
-        .classed("active", true);
-    }
   });
 
   svg.append("g")
@@ -511,10 +543,26 @@ function renderChart(baseData, chartData) {
     .join("circle")
     .attr("cx", (d) => x(d.round))
     .attr("cy", (d) => y(d.cumulativePoints))
-    .attr("r", 5.5)
+    .attr("r", (d) => {
+      const isSelectedDot =
+        state.selectedDot &&
+        d.name === state.selectedDot.name &&
+        d.round === state.selectedDot.round &&
+        d.year === state.selectedDot.year &&
+        d.eventKey === state.selectedDot.eventKey;
+      return isSelectedDot ? 8 : 5.5;
+    })
     .attr("fill", (d) => color(d.name))
     .attr("stroke", "white")
-    .attr("stroke-width", 1.5)
+    .attr("stroke-width", (d) => {
+      const isSelectedDot =
+        state.selectedDot &&
+        d.name === state.selectedDot.name &&
+        d.round === state.selectedDot.round &&
+        d.year === state.selectedDot.year &&
+        d.eventKey === state.selectedDot.eventKey;
+      return isSelectedDot ? 3 : 1.5;
+    })
     .attr("class", "line-dot")
     .attr("tabindex", 0)
     .attr("role", "button")
@@ -546,15 +594,17 @@ function renderAll() {
   // Filters data, computes ranking, and redraws table, line chart and mini chart
   const baseData = filteredRows();
 
+  if (finalRankingsTitle) {
+    finalRankingsTitle.textContent = getFinalRankingsTitle();
+  }
+
   const rankings = getRankings(baseData);
 
-  // Support two-diver selection: if divers are selected, filter to show only them
-  let chartData;
-  if (state.selectedDivers.size > 0) {
-    chartData = baseData.filter((d) => state.selectedDivers.has(d.name));
-  } else {
-    chartData = baseData;
-  }
+  // Plot selections fade other lines; table selections filter chart to selected rows only
+  const chartData =
+    state.selectionSource === "table" && state.selectedDivers.size > 0
+      ? baseData.filter((d) => state.selectedDivers.has(d.name))
+      : baseData;
 
   renderTable(rankings);
   renderChart(baseData, chartData);
@@ -573,12 +623,14 @@ async function init() {
 
   yearFilter.addEventListener("change", () => {
     state.selectedDivers.clear();
+    state.selectionSource = null;
     state.selectedDot = null;
     renderAll();
   });
 
   eventFilter.addEventListener("change", () => {
     state.selectedDivers.clear();
+    state.selectionSource = null;
     state.selectedDot = null;
     renderAll();
   });

@@ -184,10 +184,17 @@ label {
 }
 
 select {
-  padding: 0.7rem 0.9rem;
+  padding: 0.7rem 2.2rem 0.7rem 0.9rem;
   border: 2px solid #475569;
   border-radius: 6px;
-  background: #fff;
+  background-color: #fff;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 6.5L8 11l5-4.5' fill='none' stroke='%231f2937' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 14px 14px;
   font-size: 1.1rem;
   min-height: 44px;
   min-width: 180px;

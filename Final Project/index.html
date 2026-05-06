@@ -15,14 +15,14 @@
         <section aria-label="Visualization Description" class="intro-section">
           <p>
             This visualization tracks the cumulative scores of Olympic divers across multiple rounds in each competition. 
-            Each line represents a diver's score progression from the first round to the final round. Higher scores indicate better performance. 
+            Each line represents a diver's score progression from the first round to the final round. Higher scores indicate better performance.
+            Use the filters below to explore different events and years.
           </p>
         </section>
 
         <section class="controls" aria-label="Chart filters">
           <div class="filter-section">
             <h2 class="filter-heading">Filter:</h2>
-            <p class="filter-description">Use the filters below to explore different events and years.</p>
             <div class="filter-inputs">
               <div class="filter-group">
                 <label for="yearFilter">Olympic Year</label>
@@ -66,7 +66,7 @@
         <article class="chart-card">
           <div id="chart" role="region" aria-label="Main performance chart"></div>
           <section class="chart-guide">
-            <p class="chart-guide-text">Accessibility: Use Tab and Up & Down Arrow keys to navigate the page. Press Enter or Space to select an item.</p>
+            <p class="chart-guide-text"><strong>Accessibility</strong>: Use Tab and Up & Down Arrow keys to navigate the page. Press Enter or Space to select an item.</p>
           </section>
           <section class="mini-chart-wrap" role="region" aria-label="Dive analysis">
             <h2>Dive Code Average Analysis</h2>
@@ -75,8 +75,7 @@
           </section>
         </article>
         <article class="table-card">
-          <h2>Final Rankings</h2>
-          <p class="table-help">Below is a table showing the final rankings of divers in the event, ordered from highest to lowest total score.</p>
+          <h2 id="finalRankingsTitle">Final Ranking: Women 3M, 2024</h2>
           <div id="rankTable"></div>
           
           <section class="action-buttons-section">
@@ -86,7 +85,7 @@
                 Show Diving Insights
               </button>
               <a href="#" id="viewDataLink" onclick="openDataModal(event)" class="data-link">View Underlying Data</a>
-              <a href="../Final Project/Final Project Write-Up.pdf" target="_blank" class="data-link">Final Write-Up</a>
+              <a href="Final Project Write-Up.pdf" id="writeUpLink" class="data-link" target="_blank">View Final Project Write-Up</a>
             </div>
           </section>
         </article>
